@@ -6,10 +6,21 @@
 // You can pass additional config via defineConfig({ vite: { ... }, etc... }) if needed.
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 
+// Set GITHUB_PAGES_BASE (e.g. "/bhive-website-prototype/") to produce a fully
+// prerendered static build for GitHub Pages instead of the Cloudflare SSR build.
+const ghPagesBase = process.env.GITHUB_PAGES_BASE;
+
 export default defineConfig({
+  ...(ghPagesBase ? { nitro: false as const, vite: { base: ghPagesBase } } : {}),
   tanstackStart: {
     // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
     // nitro/vite builds from this
     server: { entry: "server" },
+    ...(ghPagesBase
+      ? {
+          router: { basepath: ghPagesBase },
+          prerender: { enabled: true, crawlLinks: true },
+        }
+      : {}),
   },
 });
